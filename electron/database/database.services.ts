@@ -873,6 +873,9 @@ async function getCoordsOfPreviousPage(marcher_id: number, page_id: number) {
         return;
     }
     const previousPage = await getPreviousPage(page_id, db);
+    if (!previousPage)
+        // If the previous page does not exist, return undefined
+        return;
     const previousMarcherPage = await getMarcherPage({ marcher_id, page_id: previousPage.id }) as MarcherPage;
 
     if (!previousPage)
