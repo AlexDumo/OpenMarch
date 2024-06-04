@@ -67,27 +67,18 @@ function Canvas({ className = "" }: { className?: string }) {
             return;
 
         handleSelectLock.current = true;
-        if (e.selected.length > 1) {
-            // The current active object needs to be discarded before creating a new active selection
-            // This is due to buggy behavior in Fabric.js
-            (canvas.current as fabric.Canvas).discardActiveObject();
-            const selectedCanvasMarchers: CanvasMarcher[] =
-                e.selected.filter((canvasObject: CanvasMarcher) => canvasObject instanceof CanvasMarcher);
-            const activeSelection = new fabric.ActiveSelection(selectedCanvasMarchers, {
-                canvas: canvas.current,
-                ...ActiveObjectArgs
-            });
 
-            (canvas.current as fabric.Canvas).setActiveObject(activeSelection);
-            canvas.current.requestRenderAll();
-        }
+        const activeObject = canvas.current.getActiveObject()
+        activeObject.set(ActiveObjectArgs)
+        activeObject.lockMovementX = uiSettings.lockX;
+        activeObject.lockMovementY = uiSettings.lockY;
 
         const activeObjectMarcherIds = canvas.current.getActiveObjects().map((activeObject: any) =>
             activeObject instanceof CanvasMarcher ? activeObject.marcherObj.id : null
         );
         const newSelectedMarchers = marchers.filter((marcher) => activeObjectMarcherIds.includes(marcher.id));
         setSelectedMarchers(newSelectedMarchers);
-    }, [marchers, setSelectedMarchers]);
+    }, [marchers, setSelectedMarchers, uiSettings, uiSettings.lockX, uiSettings.lockY]);
 
     /**
      * Deselect the marcher when the selection is cleared
@@ -424,17 +415,6 @@ function Canvas({ className = "" }: { className?: string }) {
             sendCanvasMarchersToFront();
         }
     }, [pages, removePathways, removeStaticCanvasMarchers, renderPathways, renderStaticMarchers, selectedPage, sendCanvasMarchersToFront, uiSettings.nextPaths, uiSettings.previousPaths])
-
-    // Lock X and Y axis when the settings change
-    useEffect(() => {
-        if (canvas.current && uiSettings) {
-            const activeObject = canvas.current.getActiveObject();
-            if (activeObject) {
-                activeObject.lockMovementX = uiSettings.lockX;
-                activeObject.lockMovementY = uiSettings.lockY;
-            }
-        }
-    }, [uiSettings, uiSettings.lockX, uiSettings.lockY]);
 
     // Set the active object to the selected marchers when they change outside of user-canvas-interaction
     useEffect(() => {
